@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,44 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import CustomStatusBar from '@/src/components/CustomStatusBar';
+import { AuthContext } from '@/src/context/AuthContext';
+
+import { AuthService } from '@/src/api/services/AuthServices';
+
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setUser } = useContext(AuthContext);
 
-  const handleLogin = () => {
-    console.log('Intento de login:', email, password);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    try {
+
+      const response = await AuthService.login({
+        email,
+        password,
+      });
+
+      if (response.success) {
+        console.log("✅ Login exitoso:", response.data);
+
+        // Set user in context to trigger navigation change
+        setUser(response.data);
+
+      } else {
+        alert(response.message || "Credenciales inválidas");
+      }
+
+    } catch (error) {
+      alert("Error al conectar con el servidor");
+    }
   };
+
 
   return (
     <KeyboardAvoidingView

@@ -6,8 +6,5 @@ import AppNavigator from './AppNavigator';
 export default function RootNavigator() {
   const { user } = useContext(AuthContext);
 
-  return (
-
-    <AuthNavigator /> 
-  );
+  return user ? <AppNavigator /> : <AuthNavigator />;
 }
