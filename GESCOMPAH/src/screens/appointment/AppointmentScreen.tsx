@@ -1,80 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Calendar from '@/src/components/calendario/Calendar';
 import AppointmentCard from '@/src/components/cita/AppointmentCard';
+import { AppointmentService } from '@/src/api/services/appointmentServices';
+import { Appointment } from '@/src/api/types/appointment';
 import colors from '@/src/styles/color';
 
 export default function AppointmentScreen() {
   // Estado para la fecha seleccionada
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Datos de ejemplo con fechas futuras/cercanas
-  const citas = [
-    {
-      id: '1',
-      fecha: '2025-11-11',
-      hora: '10:30 AM',
-      establecimiento: 'Clínica Salud Total',
-      estado: 'Confirmada',
-    },
-    {
-      id: '2',
-      fecha: '2025-11-12',
-      hora: '3:00 PM',
-      establecimiento: 'Centro Médico Norte',
-      estado: 'Pendiente',
-    },
-    {
-      id: '3',
-      fecha: '2025-11-12',
-      hora: '4:00 PM',
-      establecimiento: 'Centro Médico Norte',
-      estado: 'Pendiente',
-    },
-    {
-      id: '4',
-      fecha: '2025-11-12',
-      hora: '8:00 AM',
-      establecimiento: 'IPS Vida Sana',
-      estado: 'Cancelada',
-    },
-    {
-      id: '5',
-      fecha: '2025-11-12',
-      hora: '2:00 PM',
-      establecimiento: 'Hospital Central',
-      estado: 'Pendiente',
-    },
-    {
-      id: '6',
-      fecha: '2025-11-15',
-      hora: '9:00 AM',
-      establecimiento: 'Centro Médico Sur',
-      estado: 'Confirmada',
-    },
-    {
-      id: '7',
-      fecha: '2025-11-16',
-      hora: '11:00 AM',
-      establecimiento: 'Clínica Dental Sonrisa',
-      estado: 'Pendiente',
-    },
-    {
-      id: '8',
-      fecha: '2025-11-17',
-      hora: '4:30 PM',
-      establecimiento: 'Centro Oftalmológico Visión',
-      estado: 'Confirmada',
-    },
-    {
-      id: '9',
-      fecha: '2025-11-18',
-      hora: '1:00 PM',
-      establecimiento: 'Laboratorio Clínico Análisis',
-      estado: 'Pendiente',
-    },
-  ];
+  // Cargar citas al montar el componente
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        const result = await AppointmentService.getAll();
+        if (result.success && result.data) {
+          setAppointments(result.data);
+        }
+      } catch (error) {
+        console.error('Error loading appointments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAppointments();
+  }, []);
+
+  // Transformar citas para el formato que espera el calendario
+  const calendarAppointments = appointments.map(appointment => ({
+    fecha: appointment.dateTimeAssigned.split('T')[0], // Extraer solo la fecha
+    estado: appointment.active ? 'Pendiente' : 'Cancelada', // Mapear active a estado
+  }));
+
+  // Transformar citas para el formato que esperan las tarjetas
+  const citas = appointments.map(appointment => ({
+    id: appointment.id.toString(),
+    fecha: appointment.dateTimeAssigned.split('T')[0],
+    hora: new Date(appointment.dateTimeAssigned).toLocaleTimeString('es-ES', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }),
+    establecimiento: appointment.establishmentName,
+    estado: appointment.active ? 'Pendiente' : 'Cancelada',
+    descripcion: appointment.description,
+    persona: appointment.personName,
+    telefono: appointment.phone,
+  }));
 
   // Filtrar citas para la fecha seleccionada
   const selectedDateString = selectedDate.toISOString().split('T')[0];
@@ -94,7 +71,7 @@ export default function AppointmentScreen() {
         <Calendar
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
-          appointments={citas}
+          appointments={calendarAppointments}
         />
       </View>
 

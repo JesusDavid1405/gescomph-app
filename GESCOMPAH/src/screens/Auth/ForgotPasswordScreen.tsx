@@ -1,69 +1,122 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
-  StyleSheet,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import CustomStatusBar from "@/src/components/CustomStatusBar";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../navigation/types';
+import { AuthService } from '../../api/services/AuthServices';
+import colors from '../../styles/color';
 
-export default function ForgotPasswordScreen({ navigation }: any) {
-  const [email, setEmail] = useState("");
+type NavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 
-  const handleSubmit = () => {
-    console.log("Correo de recuperación enviado a:", email);
+export default function ForgotPasswordScreen() {
+  const navigation = useNavigation<NavigationProp>();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSendCode = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await AuthService.forgotPassword({ email: email.trim() });
+
+      if (result.success) {
+        Alert.alert(
+          'Código enviado',
+          'Se ha enviado un código de recuperación a tu correo electrónico',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate('RecoveryCode', { email: email.trim() });
+              },
+            },
+          ]
+        );
+      } else {
+        // Handle specific error for unregistered email
+        if (result.data?.detail === 'Correo no registrado') {
+          Alert.alert('Error', 'El correo electrónico no está registrado en el sistema');
+        } else {
+          Alert.alert('Error', result.message || 'Error al enviar el código');
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <CustomStatusBar backgroundColor="#3F8A4E" barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* ENCABEZADO CON GRADIENTE IGUAL AL LOGIN */}
-        <LinearGradient
-          colors={["#4FA35A", "#3F8A4E", "#8BC34A"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.header}
-        >
-          <Image
-            source={require("../../../assets/icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>¿Olvidaste tu contraseña?</Text>
-          <Text style={styles.subtitle}>
-            No te preocupes, te enviaremos un correo para restablecerla.
-          </Text>
-        </LinearGradient>
-
-        {/* FORMULARIO */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Correo electrónico</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="usuario@correo.com"
-            placeholderTextColor="#888"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Enviar correo</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.primary} />
           </TouchableOpacity>
+          <Text style={styles.title}>Recuperar Contraseña</Text>
+        </View>
 
-          <TouchableOpacity style={styles.link} onPress={() => navigation.goBack()}>
-            <Text style={styles.linkText}>Volver al inicio de sesión</Text>
+        {/* Content */}
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="mail-outline" size={80} color={colors.primary} />
+          </View>
+
+          <Text style={styles.description}>
+            Ingresa tu correo electrónico y te enviaremos un código de recuperación
+          </Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Correo electrónico</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="tu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!loading}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleSendCode}
+            disabled={loading}
+          >
+            <Text style={[styles.buttonText, loading && styles.buttonTextDisabled]}>
+              {loading ? 'Enviando...' : 'Enviar Código'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -73,74 +126,79 @@ export default function ForgotPasswordScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
     flexGrow: 1,
-    backgroundColor: "#fff",
   },
   header: {
-    borderBottomLeftRadius: 80,
-    borderBottomRightRadius: 80,
-    alignItems: "center",
-    paddingVertical: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
   },
-  logo: {
-    width: 110,
-    height: 110,
-    marginBottom: 10,
+  backButton: {
+    marginRight: 15,
   },
   title: {
-    fontSize: 22,
-    color: "#fff",
-    fontWeight: "700",
-    textAlign: "center",
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#fefefe",
-    marginTop: 6,
-    textAlign: "center",
-    maxWidth: 280,
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
-  form: {
+  iconContainer: {
     marginTop: 40,
-    paddingHorizontal: 24,
-    gap: 16,
+    marginBottom: 30,
+  },
+  description: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 24,
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 30,
   },
   label: {
-    fontSize: 14,
-    color: "#204D31",
-    marginBottom: 4,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginBottom: 8,
   },
   input: {
-    height: 48,
-    borderColor: "#3F8A4E",
-    borderWidth: 1.2,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     fontSize: 16,
-    color: "#204D31",
-    backgroundColor: "#F9F9F9",
+    backgroundColor: colors.surface,
   },
   button: {
-    backgroundColor: "#3F8A4E",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 12,
+    backgroundColor: colors.primary,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: colors.textMuted,
   },
   buttonText: {
-    color: "#fff",
+    color: colors.textLight,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
-  link: {
-    alignItems: "center",
-    marginTop: 12,
-  },
-  linkText: {
-    color: "#3F8A4E",
-    fontSize: 14,
-    fontWeight: "500",
+  buttonTextDisabled: {
+    color: colors.textSecondary,
   },
 });

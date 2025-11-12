@@ -8,5 +8,19 @@ export interface LoginResponse {
   isSuccess: boolean,
   message: string,
   expiresAt: Date
+}
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyRecoveryCodeRequest {
+  email: string;
+  code: string;
+}
+
+export interface ChangePasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
 }
