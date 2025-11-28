@@ -64,7 +64,7 @@ export default function Calendar({ selectedDate, onDateSelect, appointments = []
 
   return (
     <LinearGradient
-      colors={[colors.gradientStart, colors.primary, colors.primaryLight]}
+      colors={[colors.primary, colors.text, colors.primaryLight]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.calendarContainer}
@@ -179,22 +179,23 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   otherMonthText: {
-    color: colors.textMuted,
+    color: colors.textLight,
+    opacity: 0.5,
   },
   todayCell: {
-    backgroundColor: colors.accent,
-    borderRadius: 20,
-  },
-  todayText: {
-    color: colors.primaryDark,
-    fontWeight: '700',
-  },
-  selectedCell: {
     backgroundColor: colors.textLight,
     borderRadius: 20,
   },
+  todayText: {
+    color: colors.text,
+    fontWeight: '700',
+  },
+  selectedCell: {
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+  },
   selectedText: {
-    color: colors.primary,
+    color: colors.textLight,
     fontWeight: '700',
   },
   appointmentDot: {
@@ -203,6 +204,6 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.warning,
+    backgroundColor: colors.textLight,
   },
 });

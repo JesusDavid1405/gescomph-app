@@ -5,13 +5,16 @@ import Calendar from '@/src/components/calendario/Calendar';
 import AppointmentCard from '@/src/components/cita/AppointmentCard';
 import { AppointmentService } from '@/src/api/services/appointmentServices';
 import { Appointment } from '@/src/api/types/appointment';
-import colors from '@/src/styles/color';
+import { useTheme } from '@/src/context/ThemeContext';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 export default function AppointmentScreen() {
+  const { colors } = useTheme();
   // Estado para la fecha seleccionada
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const headerHeight = useHeaderHeight();
 
   // Cargar citas al montar el componente
   useEffect(() => {
@@ -65,9 +68,9 @@ export default function AppointmentScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: headerHeight, backgroundColor: colors.surfaceSecondary }]}>
       {/* Calendario fijo en la parte superior */}
-      <View style={styles.fixedCalendar}>
+      <View style={[styles.fixedCalendar, { backgroundColor: colors.background }]}>
         <Calendar
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
@@ -76,8 +79,8 @@ export default function AppointmentScreen() {
       </View>
 
       {/* Título fijo con fondo blanco */}
-      <View style={styles.fixedTitleContainer}>
-        <Text style={styles.sectionTitle}>
+      <View style={[styles.fixedTitleContainer, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.primary }]}>
           Citas del {selectedDate.toLocaleDateString('es-ES', {
             weekday: 'long',
             year: 'numeric',
@@ -103,7 +106,7 @@ export default function AppointmentScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={64} color={colors.textMuted} />
-              <Text style={styles.emptyText}>No hay citas para esta fecha</Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No hay citas para esta fecha</Text>
             </View>
           )}
         </View>
@@ -128,7 +131,6 @@ export default function AppointmentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surfaceSecondary,
   },
   scrollContainer: {
     flex: 1,
@@ -141,7 +143,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.primary,
     marginBottom: 16,
   },
   appointmentsSection: {
@@ -150,7 +151,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.primary,
     marginBottom: 12,
   },
   pendingSection: {
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: colors.textSecondary,
     marginTop: 16,
     textAlign: 'center',
   },
@@ -183,21 +182,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fixedCalendar: {
-    backgroundColor: colors.background,
     elevation: 2,
-    shadowColor: colors.shadow,
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 2,
   },
   fixedTitleContainer: {
-    backgroundColor: colors.background,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     elevation: 1,
-    shadowColor: colors.shadow,
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 1,

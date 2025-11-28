@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '@/src/styles/color';
+import { useTheme } from '@/src/context/ThemeContext';
 import { Establishment } from '@/src/api/types/establishment';
 
 interface EstablishmentCardProps {
@@ -9,6 +9,7 @@ interface EstablishmentCardProps {
 }
 
 export default function EstablishmentCard({ establishment }: EstablishmentCardProps) {
+  const { colors } = useTheme();
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -18,16 +19,14 @@ export default function EstablishmentCard({ establishment }: EstablishmentCardPr
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.primary }]}>
       {/* Header with status */}
       <View style={styles.header}>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusDot, establishment.active ? styles.activeDot : styles.inactiveDot]} />
-          <Text style={[styles.statusText, establishment.active ? styles.activeText : styles.inactiveText]}>
+        <View style={[styles.statusBadge, establishment.active ? { backgroundColor: '#e8f5e8' } : { backgroundColor: '#ffebee' }]}>
+          <Text style={[styles.statusBadgeText, establishment.active ? { color: colors.success } : { color: colors.danger }]}>
             {establishment.active ? 'Activo' : 'Inactivo'}
           </Text>
         </View>
-        <Text style={styles.idText}>ID: {establishment.id}</Text>
       </View>
 
       {/* Images */}
@@ -37,6 +36,9 @@ export default function EstablishmentCard({ establishment }: EstablishmentCardPr
           showsHorizontalScrollIndicator={false}
           style={styles.imagesContainer}
           contentContainerStyle={styles.imagesContent}
+          pagingEnabled
+          snapToInterval={126}
+          decelerationRate="fast"
         >
           {establishment.images.map((image) => (
             <Image
@@ -51,40 +53,34 @@ export default function EstablishmentCard({ establishment }: EstablishmentCardPr
 
       {/* Main Info */}
       <View style={styles.content}>
-        <Text style={styles.name}>{establishment.name}</Text>
-        <Text style={styles.description}>{establishment.description}</Text>
+        <Text style={[styles.name, { color: colors.primary }]}>{establishment.name}</Text>
 
         {/* Details Grid */}
         <View style={styles.detailsGrid}>
           <View style={styles.detailItem}>
-            <Ionicons name="resize-outline" size={16} color={colors.primary} />
-            <Text style={styles.detailLabel}>Área:</Text>
-            <Text style={styles.detailValue}>{establishment.areaM2} m²</Text>
+            <Ionicons name="resize-outline" size={14} color={colors.primary} />
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Área:</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>{establishment.areaM2} m²</Text>
           </View>
 
           <View style={styles.detailItem}>
-            <Ionicons name="cash-outline" size={16} color={colors.primary} />
-            <Text style={styles.detailLabel}>Valor base:</Text>
-            <Text style={styles.detailValue}>{formatCurrency(establishment.rentValueBase)}</Text>
+            <Ionicons name="cash-outline" size={14} color={colors.primary} />
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Valor base:</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>{formatCurrency(establishment.rentValueBase)}</Text>
           </View>
 
           <View style={styles.detailItem}>
-            <Ionicons name="location-outline" size={16} color={colors.primary} />
-            <Text style={styles.detailLabel}>Dirección:</Text>
-            <Text style={styles.detailValue} numberOfLines={2}>{establishment.address}</Text>
+            <Ionicons name="location-outline" size={14} color={colors.primary} />
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Dirección:</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]} numberOfLines={2}>{establishment.address}</Text>
           </View>
 
           <View style={styles.detailItem}>
-            <Ionicons name="business-outline" size={16} color={colors.primary} />
-            <Text style={styles.detailLabel}>Plaza:</Text>
-            <Text style={styles.detailValue}>{establishment.plazaName}</Text>
+            <Ionicons name="calculator-outline" size={14} color={colors.primary} />
+            <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>UVT:</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>{establishment.uvtQty}</Text>
           </View>
 
-          <View style={styles.detailItem}>
-            <Ionicons name="calculator-outline" size={16} color={colors.primary} />
-            <Text style={styles.detailLabel}>UVT:</Text>
-            <Text style={styles.detailValue}>{establishment.uvtQty}</Text>
-          </View>
         </View>
       </View>
     </View>
@@ -93,57 +89,33 @@ export default function EstablishmentCard({ establishment }: EstablishmentCardPr
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
+    marginVertical: 8,
     marginBottom: 16,
-    elevation: 3,
-    shadowColor: colors.shadow,
-    shadowOpacity: 0.1,
+    elevation: 2,
+    shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    borderWidth: 0.5,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginBottom: 12,
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  activeDot: {
-    backgroundColor: colors.success,
-  },
-  inactiveDot: {
-    backgroundColor: colors.danger,
-  },
-  statusText: {
+  statusBadgeText: {
     fontSize: 12,
     fontWeight: '600',
   },
-  activeText: {
-    color: colors.success,
-  },
-  inactiveText: {
-    color: colors.danger,
-  },
-  idText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
   imagesContainer: {
-    marginBottom: 12,
+    marginBottom: 20,
   },
   imagesContent: {
     paddingHorizontal: 4,
@@ -151,8 +123,8 @@ const styles = StyleSheet.create({
   image: {
     width: 120,
     height: 80,
-    borderRadius: 8,
-    marginRight: 8,
+    borderRadius: 12,
+    marginRight: 6,
   },
   content: {
     flex: 1,
@@ -160,17 +132,15 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.primary,
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginBottom: 16,
     lineHeight: 20,
   },
   detailsGrid: {
-    gap: 12,
+    gap: 16,
   },
   detailItem: {
     flexDirection: 'row',
@@ -179,13 +149,11 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginLeft: 8,
     minWidth: 70,
   },
   detailValue: {
     fontSize: 14,
-    color: colors.text,
     fontWeight: '500',
     marginLeft: 4,
     flex: 1,

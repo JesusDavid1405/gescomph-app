@@ -1,4 +1,6 @@
-export default {
+import { ThemeColors } from '../context/ThemeContext';
+
+export const lightColors: ThemeColors = {
   // Colores principales del branding
   primary: '#3F8A4E',           // Verde principal
   primaryLight: '#8BC34A',      // Verde claro
@@ -31,3 +33,30 @@ export default {
   border: '#3F8A4E',            // Verde para bordes
   shadow: '#000000',            // Negro para sombras
 };
+
+export const darkColors: ThemeColors = {
+  // Colores principales del branding
+  primary: '#8BC34A',
+  primaryLight: '#AED581',
+  primaryDark: '#4CAF50',
+  accent: '#FFD54F',
+  gradientStart: '#4CAF50',
+  gradientEnd: '#2E7D32',
+  gradientAccent: '#8BC34A',
+  background: '#121212',
+  surface: '#1E1E1E',
+  surfaceSecondary: '#2A2A2A',
+  text: '#FFFFFF',
+  textSecondary: '#B0B0B0',
+  textMuted: '#888888',
+  textLight: '#FFFFFF',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  danger: '#F44336',
+  info: '#2196F3',
+  border: '#8BC34A',
+  shadow: '#000000',
+};
+
+// For backward compatibility
+export default lightColors;

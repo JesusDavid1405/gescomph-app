@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AppointmentScreen from '../screens/appointment/AppointmentScreen';
 
 import { Ionicons } from '@expo/vector-icons';
+import { defaultHeaderOptions } from './navigationOptions';
 
 const Tab = createBottomTabNavigator();
 
@@ -10,6 +11,7 @@ export default function TabsNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        ...defaultHeaderOptions,
         tabBarIcon: ({ color, size }) => {
           let iconName: any;
           switch (route.name) {

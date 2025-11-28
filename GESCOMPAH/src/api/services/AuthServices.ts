@@ -1,4 +1,3 @@
-import CookieManager from '@react-native-cookies/cookies';
 import { API_BASE_URL, DEFAULT_HEADERS } from "../constant/config";
 import { ENDPOINTS } from "../constant/environment";
 import { ApiResponse } from "../types/apiTypes";
@@ -16,20 +15,6 @@ export const AuthService = {
 
       const data = await response.json();
 
-      // ⚡ Captura el header Set-Cookie manualmente
-      const rawCookies = response.headers.get("set-cookie");
-
-      if (rawCookies) {
-        await CookieManager.set(API_BASE_URL, {
-          name: "session", // usa el nombre real que tu backend envía
-          value: rawCookies.split("=")[1].split(";")[0],
-          path: "/",
-        });
-      }
-
-      const cookies = await CookieManager.get(API_BASE_URL);
-      console.log("🍪 Cookies guardadas:", cookies);
-
       return { success: response.ok, data, message: data.message };
     } catch (error) {
       console.error("Error en login:", error);
@@ -44,7 +29,6 @@ export const AuthService = {
         credentials: "include",
       });
 
-      await CookieManager.clearAll();
       return { success: true };
     } catch (error) {
       console.error("Error en logout:", error);
