@@ -24,3 +24,9 @@ export interface ChangePasswordRequest {
   code: string;
   newPassword: string;
 }
+
+export interface ChangePasswordDto {
+  userId: number;
+  currentPassword: string;
+  newPassword: string;
+}

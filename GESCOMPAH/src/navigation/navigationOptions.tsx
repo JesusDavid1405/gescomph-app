@@ -1,11 +1,10 @@
 import React from 'react';
-import colors from '../styles/color';
 import Header from '../components/Header';
+import colors from '../styles/color';
 
 export const defaultHeaderOptions = {
   headerStyle: {
     backgroundColor: 'transparent',
-    paddingVertical: 8,
   },
   headerTintColor: colors.primary,
   headerTitle: '',

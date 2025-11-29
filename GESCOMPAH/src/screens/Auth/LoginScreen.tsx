@@ -36,7 +36,6 @@ export default function LoginScreen({ navigation }: any) {
       });
 
       if (response.success) {
-        console.log("✅ Login exitoso:", response.data);
 
         // Set user in context to trigger navigation change
         setUser(response.data);

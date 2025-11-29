@@ -1,16 +1,17 @@
-import React from 'react';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { getFocusedRouteNameFromRoute, DrawerActions, useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DashboardScreen from '../screens/Dashboard/DashboardScreen';
-import AppointmentScreen from '../screens/appointment/AppointmentScreen';
-import EstablishmentNavigator from './EstablishmentNavigator';
-import SettingsNavigator from './SettingsNavigator';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { DrawerActions, getFocusedRouteNameFromRoute, useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import CustomDrawer from '../components/CustomDrawer';
 import Header from '../components/Header';
-import { defaultHeaderOptions } from './navigationOptions';
+import DashboardScreen from '../screens/Dashboard/DashboardScreen';
+import ContractScreen from '../screens/contract/contract';
 import colors from '../styles/color';
+import EstablishmentNavigator from './EstablishmentNavigator';
+import ContractNavigator from './ContractNavigator';
+import SettingsNavigator from './SettingsNavigator';
+import { defaultHeaderOptions } from './navigationOptions';
 
 const Drawer = createDrawerNavigator();
 
@@ -44,7 +45,6 @@ export default function AppNavigator() {
       }}
     >
       <Drawer.Screen name="Inicio" component={DashboardScreen} options={{ headerTitle: 'Inicio' }} />
-      <Drawer.Screen name="Citas" component={AppointmentScreen} options={{ headerTitle: 'Citas' }} />
       <Drawer.Screen
         name="Establecimientos"
         component={EstablishmentNavigator}
@@ -58,6 +58,22 @@ export default function AppNavigator() {
                 showSearch={routeName === 'EstablishmentList'}
                 showNotifications={true}
               />
+            ),
+          };
+        }}
+      />
+      <Drawer.Screen
+        name="Contratos"
+        component={ContractNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'ContractList';
+          return {
+            headerShown: routeName !== 'DetailsContract',
+            headerTitle: 'Contratos',
+            headerRight: () => (
+              <TouchableOpacity style={styles.notificationButton}>
+                <Ionicons name="notifications-outline" size={24} color="white" />
+              </TouchableOpacity>
             ),
           };
         }}

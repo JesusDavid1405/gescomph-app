@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { CityService } from '../../api/services/cityServices';
 import { DepartmentService } from '../../api/services/departmentServices';
 import { PersonService } from '../../api/services/personServices';
@@ -19,7 +20,7 @@ import { City, Department } from '../../api/types/locationTypes';
 import { PersonUpdateModel } from '../../api/types/personTypes';
 import { AuthContext } from '../../context/AuthContext';
 import { SettingsStackParamList } from '../../navigation/types';
-import colors from '../../styles/color';
+import { useTheme } from '../../context/ThemeContext';
 
 // Utility function to decode JWT
 const decodeJWT = (token: string) => {
@@ -39,6 +40,7 @@ export default function EditProfileScreen() {
   const navigation = useNavigation<EditProfileScreenNavigationProp>();
   const headerHeight = useHeaderHeight();
   const { user } = useContext(AuthContext);
+  const { colors } = useTheme();
 
   const [personData, setPersonData] = useState<any>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -111,32 +113,17 @@ export default function EditProfileScreen() {
 
   const fetchCityData = async (cityId: number) => {
     try {
-      console.log('Fetching city data for cityId:', cityId);
       const token = user?.data?.accessToken;
       const response = await CityService.getById(cityId, token);
-      console.log('City response:', response);
       if (response.success && response.data) {
         const city = (response.data as any).data || response.data;
-        console.log('City data:', city);
         if (city?.departmentName) {
-          console.log('Looking for department with name:', city.departmentName);
-          console.log('Departments list:', departmentsRef.current);
-          console.log('Department names:', departmentsRef.current.map(d => d.name));
           const department = departmentsRef.current.find(dept => dept.name === city.departmentName);
-          console.log('Found department:', department);
           if (department) {
-            console.log('Setting selectedDepartment to:', department.id.toString());
             setSelectedDepartment(department.id.toString());
-            console.log('Calling loadCities with:', department.id);
             await loadCities(department.id);
-          } else {
-            console.log('Department not found in list');
           }
-        } else {
-          console.log('City has no departmentName');
         }
-      } else {
-        console.log('City fetch failed:', response.message);
       }
     } catch (error) {
       console.error('Error fetching city data:', error);
@@ -145,19 +132,14 @@ export default function EditProfileScreen() {
 
   const loadDepartments = async () => {
     try {
-      console.log('Loading departments...');
       const token = user?.data?.accessToken;
       const response = await DepartmentService.getAll(token);
-      console.log('Department response:', response);
       if (response.success && response.data) {
         const data = Array.isArray(response.data)
           ? response.data
           : (response.data as any).data;
-        console.log('Departments data:', data);
         setDepartments(data || []);
         departmentsRef.current = data || [];
-      } else {
-        console.log('Failed to load departments:', response.message);
       }
     } catch (error) {
       console.error('Error loading departments:', error);
@@ -166,18 +148,13 @@ export default function EditProfileScreen() {
 
   const loadCities = async (departmentId: number) => {
     try {
-      console.log('Loading cities for department:', departmentId);
       const token = user?.data?.accessToken;
       const response = await CityService.getByDepartment(departmentId, token);
-      console.log('City response:', response);
       if (response.success && response.data) {
         const data = Array.isArray(response.data)
           ? response.data
           : (response.data as any).data;
-        console.log('Cities data:', data);
         setCities(data || []);
-      } else {
-        console.log('Failed to load cities:', response.message);
       }
     } catch (error) {
       console.error('Error loading cities:', error);
@@ -217,134 +194,246 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: headerHeight }]}>
+    <View style={[styles.container, { paddingTop: headerHeight, backgroundColor: colors.surfaceSecondary }]}>
+      {/* Header Decorator */}
+      <View style={[styles.headerDecorator, { backgroundColor: colors.primary }]} />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerDecorator} />
+        {/* Profile Header Section */}
+        <View style={[styles.profileSection, { backgroundColor: colors.background }]}>
+          <View style={styles.avatar}>
+            <Ionicons name="person-circle" size={60} color={colors.primary} />
+          </View>
+          <Text style={[styles.userName, { color: colors.text }]}>
+            {personData ? `${personData.firstName} ${personData.lastName}` : 'Cargando...'}
+          </Text>
+          <Text style={[styles.userRole, { color: colors.textSecondary }]}>Editar información</Text>
+        </View>
 
-        <View style={styles.content}>
-          <Text style={styles.title}>Editar Perfil</Text>
+        {/* Información Personal */}
+        <View style={[styles.section, { backgroundColor: colors.background }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Información Personal</Text>
 
           {/* Nombre */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.firstName}
-              onChangeText={(value) => updateFormData('firstName', value)}
-              placeholder="Ingrese su nombre"
-            />
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Nombre</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={formData.firstName}
+                  onChangeText={(value) => updateFormData('firstName', value)}
+                  placeholder="Ingrese su nombre"
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Apellido */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Apellido *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.lastName}
-              onChangeText={(value) => updateFormData('lastName', value)}
-              placeholder="Ingrese su apellido"
-            />
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Apellido</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={formData.lastName}
+                  onChangeText={(value) => updateFormData('lastName', value)}
+                  placeholder="Ingrese su apellido"
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </View>
           </View>
 
-          {/* Dirección */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Dirección *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.address}
-              onChangeText={(value) => updateFormData('address', value)}
-              placeholder="Ingrese su dirección"
-            />
+          {/* Documento */}
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="card-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Documento</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={personData?.document || ''}
+                  placeholder="Número de documento"
+                  placeholderTextColor={colors.textSecondary}
+                  editable={false}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Teléfono */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Teléfono *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.phone}
-              onChangeText={(value) => updateFormData('phone', value)}
-              placeholder="Ingrese su teléfono"
-              keyboardType="phone-pad"
-            />
+          <View style={[styles.inputWrapper, styles.lastInput]}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="call-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Teléfono</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={formData.phone}
+                  onChangeText={(value) => updateFormData('phone', value)}
+                  placeholder="Ingrese su teléfono"
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Información de Contacto */}
+        <View style={[styles.section, { backgroundColor: colors.background }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Información de Contacto</Text>
+
+          {/* Correo Electrónico */}
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="mail-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Correo Electrónico</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={personData?.email || ''}
+                  placeholder="correo@ejemplo.com"
+                  placeholderTextColor={colors.textSecondary}
+                  editable={false}
+                />
+              </View>
+            </View>
           </View>
 
+          {/* Dirección */}
+          <View style={[styles.inputWrapper, styles.lastInput]}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="home-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Dirección</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text }]}
+                  value={formData.address}
+                  onChangeText={(value) => updateFormData('address', value)}
+                  placeholder="Ingrese su dirección"
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Información Geográfica */}
+        <View style={[styles.section, { backgroundColor: colors.background }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Información Geográfica</Text>
+
           {/* Departamento */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Departamento *</Text>
-            {dataLoaded ? (
-              <View style={styles.pickerInput}>
-                <Picker
-                  selectedValue={selectedDepartment}
-                  onValueChange={(value) => {
-                    setSelectedDepartment(value);
-                    setFormData(prev => ({ ...prev, cityId: 0 }));
-                    setCities([]);
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  <Picker.Item label="Seleccionar departamento" value="" />
-                  {departments.map((dept) => (
-                    <Picker.Item
-                      key={dept.id}
-                      label={dept.name}
-                      value={dept.id.toString()}
-                    />
-                  ))}
-                </Picker>
+          <View style={styles.inputWrapper}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="map-outline" size={20} color={colors.primary} />
               </View>
-            ) : (
-              <View style={styles.pickerInput}>
-                <Text style={styles.loadingText}>Cargando departamentos...</Text>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Departamento</Text>
+                {dataLoaded ? (
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={selectedDepartment}
+                      onValueChange={(value) => {
+                        setSelectedDepartment(value);
+                        setFormData(prev => ({ ...prev, cityId: 0 }));
+                        setCities([]);
+                      }}
+                      style={[styles.picker, { color: colors.text }]}
+                    >
+                      <Picker.Item label="Seleccionar departamento" value="" />
+                      {departments.map((dept) => (
+                        <Picker.Item
+                          key={dept.id}
+                          label={dept.name}
+                          value={dept.id.toString()}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                ) : (
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                    Cargando...
+                  </Text>
+                )}
               </View>
-            )}
+            </View>
           </View>
 
           {/* Ciudad */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Ciudad *</Text>
-            {dataLoaded ? (
-              <View style={styles.pickerInput}>
-                <Picker
-                  selectedValue={formData.cityId ? formData.cityId.toString() : ""}
-                  enabled={!!selectedDepartment}
-                  onValueChange={(value) =>
-                    updateFormData('cityId', parseInt(value))
-                  }
-                  style={{ flex: 1 }}
-                >
-                  <Picker.Item label="Seleccionar ciudad" value="" />
-                  {cities.map((city) => (
-                    <Picker.Item
-                      key={city.id}
-                      label={city.name}
-                      value={city.id.toString()}
-                    />
-                  ))}
-                </Picker>
+          <View style={[styles.inputWrapper, styles.lastInput]}>
+            <View style={styles.inputLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
+                <Ionicons name="location-outline" size={20} color={colors.primary} />
               </View>
-            ) : (
-              <View style={styles.pickerInput}>
-                <Text style={styles.loadingText}>Cargando ciudades...</Text>
+              <View style={styles.inputContent}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Ciudad</Text>
+                {dataLoaded ? (
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={formData.cityId ? formData.cityId.toString() : ""}
+                      enabled={!!selectedDepartment}
+                      onValueChange={(value) =>
+                        updateFormData('cityId', parseInt(value))
+                      }
+                      style={[styles.picker, { color: colors.text }]}
+                    >
+                      <Picker.Item label="Seleccionar ciudad" value="" />
+                      {cities.map((city) => (
+                        <Picker.Item
+                          key={city.id}
+                          label={city.name}
+                          value={city.id.toString()}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                ) : (
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                    Cargando...
+                  </Text>
+                )}
               </View>
-            )}
+            </View>
           </View>
-
-          {/* Botón guardar */}
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleUpdateProfile}
-            disabled={loading}
-          >
-            <Text style={styles.saveButtonText}>
-              {loading ? 'Guardando...' : 'Guardar Cambios'}
-            </Text>
-          </TouchableOpacity>
         </View>
+
+        {/* Botón Guardar */}
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            { backgroundColor: colors.primary },
+            loading && styles.saveButtonDisabled
+          ]}
+          onPress={handleUpdateProfile}
+          disabled={loading}
+        >
+          <Ionicons name="checkmark-circle-outline" size={24} color="white" />
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Guardando...' : 'Guardar Cambios'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -355,7 +444,6 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surfaceSecondary,
     position: 'relative',
   },
   headerDecorator: {
@@ -364,74 +452,139 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 200,
-    backgroundColor: colors.primary,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    zIndex: 0,
   },
   scrollView: {
     flex: 1,
+    zIndex: 1,
   },
   scrollContent: {
-    paddingTop: 120,
+    paddingTop: 80,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  content: {
-    backgroundColor: 'white',
+  profileSection: {
     borderRadius: 20,
-    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
     elevation: 5,
+    position: 'relative',
   },
-  title: {
-    fontSize: 24,
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 12,
+    borderWidth: 4,
+    borderColor: 'white',
+    position: 'absolute',
+    top: -50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  userName: {
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 4,
   },
-  inputGroup: {
-    marginBottom: 20,
+  userRole: {
+    fontSize: 14,
   },
-  label: {
+  section: {
+    marginTop: 20,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  inputWrapper: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  lastInput: {
+    borderBottomWidth: 0,
+  },
+  inputLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  inputContent: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.surface,
     fontSize: 16,
+    fontWeight: '500',
+    paddingVertical: 0,
   },
-  pickerInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
+  pickerContainer: {
+    marginTop: 4,
+  },
+  picker: {
+    height: 50,
   },
   loadingText: {
     fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: 12,
+    fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 24,
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
-    color: colors.textLight,
     fontSize: 16,
     fontWeight: '600',
+    color: 'white',
   },
 });

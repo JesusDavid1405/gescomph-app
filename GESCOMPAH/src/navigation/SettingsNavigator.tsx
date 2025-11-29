@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SettingsStackParamList } from './types';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import EditProfileScreen from '../screens/Settings/EditProfileScreen';
+import ChangePasswordScreen from '../screens/Settings/ChangePasswordScreen';
 import colors from '../styles/color';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
@@ -26,6 +27,27 @@ export default function SettingsNavigator() {
       <Stack.Screen
         name="EditProfile"
         component={EditProfileScreen}
+        options={({ navigation }) => ({
+          headerShown: true,
+          headerTransparent: true,
+          headerTitle: '',
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={22} color={colors.primary} />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity style={styles.notificationButton}>
+              <Ionicons name="notifications-outline" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          ),
+        })}
+      />
+
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
         options={({ navigation }) => ({
           headerShown: true,
           headerTransparent: true,

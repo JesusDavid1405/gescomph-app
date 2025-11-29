@@ -5,6 +5,7 @@ export const ENDPOINTS = {
     REFRESH: "/auth/mobile/refresh",
     RECOVER: "/auth/recuperar/enviar-codigo",
     RECOVER_VERIFY: "/auth/recuperar/confirmar",
+    CHANGE_PASSWORD: "/auth/change-password",
   },
   USER: {
     PROFILE: "/user/profile",
@@ -14,6 +15,7 @@ export const ENDPOINTS = {
     BASE: "/appointment",
     ID: (id: string) => `/appointments/${id}`,
     GET_BY_DATE: (date: string) => `/Appointment/GetByDate?date=${date}`,
+    GET_BY_PERSON_ID: (personId: number) => `/Appointment/GetByPersonId?personId=${personId}`,
   },
   ESTABLISHMENT: {
     BASE: "/establishments?activeOnly=true",
@@ -36,5 +38,12 @@ export const ENDPOINTS = {
   CITY: {
     ID: (id: number) => `/city/${id}`,
     BY_DEPARTMENT: (departmentId: number) => `/city/CityWithDepartment/${departmentId}`,
+  },
+  CONTRACT: {
+    MINE: "/Contract/mine",
+    METRICS: "/Contract/metrics",
+    ID: (id: number) => `/Contract/${id}`,
+    PDF: (id: number) => `/Contract/${id}/pdf`,
+    OBLIGATIONS: (id: number) => `/Contract/${id}/obligations`,
   },
 };

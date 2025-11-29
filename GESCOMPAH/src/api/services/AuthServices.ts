@@ -1,7 +1,7 @@
 import { API_BASE_URL, DEFAULT_HEADERS } from "../constant/config";
 import { ENDPOINTS } from "../constant/environment";
 import { ApiResponse } from "../types/apiTypes";
-import { LoginRequest, LoginResponse, ForgotPasswordRequest, VerifyRecoveryCodeRequest, ChangePasswordRequest } from "../types/authTypes";
+import { ChangePasswordDto, ChangePasswordRequest, ForgotPasswordRequest, LoginRequest, LoginResponse, VerifyRecoveryCodeRequest } from "../types/authTypes";
 
 export const AuthService = {
   async login(payload: LoginRequest): Promise<ApiResponse<LoginResponse>> {
@@ -83,6 +83,28 @@ export const AuthService = {
       return { success: response.ok, data, message: data.message };
     } catch (error) {
       console.error("Error en changePassword:", error);
+      return { success: false, message: "Error de conexión" };
+    }
+  },
+
+  async changeCurrentPassword(payload: ChangePasswordDto): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTH.CHANGE_PASSWORD}`, {
+        method: "POST",
+        headers: DEFAULT_HEADERS,
+        body: JSON.stringify(payload),
+      });
+
+      const text = await response.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (parseError) {
+        data = null;
+      }
+
+      return { success: response.ok, data, message: data?.message || text };
+    } catch (error) {
       return { success: false, message: "Error de conexión" };
     }
   },

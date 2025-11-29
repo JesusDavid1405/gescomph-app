@@ -23,8 +23,6 @@ export const AppointmentService = {
 
     async  create(appointmentData: Partial<Appointment>): Promise<ApiResponse<Appointment>> {
         const url = `${API_BASE_URL}${ENDPOINTS.APPOINTMENT.BASE}`;
-        console.log('🌐 Appointment create URL:', url);
-        console.log('📤 Appointment create payload:', JSON.stringify(appointmentData, null, 2));
         try {
             const response = await fetch(url, {
                 method: "POST",
@@ -32,9 +30,7 @@ export const AppointmentService = {
                 credentials: "include",
                 body: JSON.stringify(appointmentData),
             });
-            console.log('📡 Appointment create response status:', response.status);
             const text = await response.text();
-            console.log('📄 Appointment create response text:', text);
             const data = text ? JSON.parse(text) : null;
             return { success: response.ok, data, message: data?.message };
         } catch (error) {
@@ -71,6 +67,29 @@ export const AppointmentService = {
             return { success: response.ok, data, message: data.message };
         } catch (error) {
             console.error("Error en getByDate appointments:", error);
+            return { success: false, message: "Error de conexión" };
+        }
+    },
+
+    async getByPersonId(personId: number, token?: string): Promise<ApiResponse<Appointment[]>> {
+        try {
+            const headers = {
+                ...DEFAULT_HEADERS,
+                ...(token && { Authorization: `Bearer ${token}` }),
+            };
+
+            const response = await fetch(`${API_BASE_URL}${ENDPOINTS.APPOINTMENT.GET_BY_PERSON_ID(personId)}`, {
+                method: "GET",
+                headers,
+                credentials: "include",
+            });
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : null;
+
+            return { success: response.ok, data, message: data?.message };
+        } catch (error) {
+            console.error("Error en getByPersonId appointments:", error);
             return { success: false, message: "Error de conexión" };
         }
     }

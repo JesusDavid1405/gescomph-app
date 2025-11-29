@@ -1,22 +1,22 @@
-import React, { useState, useEffect, useContext } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { SettingsStackParamList } from '../../navigation/types';
-import { useTheme } from '../../context/ThemeContext';
-import { useHeaderHeight } from '@react-navigation/elements';
-import { AuthContext } from '../../context/AuthContext';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { PersonService } from '../../api/services/personServices';
+import { AuthContext } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { SettingsStackParamList } from '../../navigation/types';
 
 // Utility function to decode JWT
 const decodeJWT = (token: string) => {
@@ -35,7 +35,7 @@ export default function SettingsScreen() {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
   const headerHeight = useHeaderHeight();
   const { user } = useContext(AuthContext);
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors } = useTheme();
   const [personData, setPersonData] = useState<any>(null);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [headerTextColor, setHeaderTextColor] = useState(colors.textLight);
@@ -129,8 +129,7 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => {
-              // Navigate to change password screen
-              console.log('Change password');
+              navigation.navigate('ChangePassword');
             }}
           >
             <View style={styles.settingLeft}>
@@ -143,38 +142,16 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Preferences Section */}
+        {/* Preferences Section
         <View style={[styles.section, { backgroundColor: colors.background }]}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Preferencias</Text>
-
-          {/* Dark Mode */}
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}15` }]}>
-                <Ionicons
-                  name={isDark ? "moon" : "moon-outline"}
-                  size={20}
-                  color={colors.primary}
-                />
-              </View>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>Modo oscuro</Text>
-            </View>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: '#E0E0E0', true: colors.primary }}
-              thumbColor={isDark ? '#FFFFFF' : '#F4F4F4'}
-              ios_backgroundColor="#E0E0E0"
-            />
-          </View>
-        </View>
+        </View> */}
 
         {/* Logout Button */}
         <TouchableOpacity
           style={[styles.logoutButton, { backgroundColor: colors.background }]}
           onPress={() => {
             // Handle logout
-            console.log('Logout');
           }}
         >
           <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
