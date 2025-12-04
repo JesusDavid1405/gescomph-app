@@ -5,10 +5,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
 import { ContractService } from '../../api/services/contractServices';
 import { Contract } from '../../api/types/contract';
@@ -28,6 +29,7 @@ export default function ContractScreen() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [activeContracts, setActiveContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadContracts();
@@ -52,7 +54,13 @@ export default function ContractScreen() {
       setActiveContracts([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadContracts();
   };
 
   const handleViewDetails = (contract: Contract) => {
@@ -84,7 +92,10 @@ export default function ContractScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: headerHeight, backgroundColor: colors.surfaceSecondary }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {/* Header Section */}
         <View style={styles.headerSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
