@@ -46,4 +46,7 @@ export const ENDPOINTS = {
     PDF: (id: number) => `/Contract/${id}/pdf`,
     OBLIGATIONS: (id: number) => `/Contract/${id}/obligations`,
   },
+  PAYMENTS: {
+    CHECKOUT: (obligationId: number) => `/payments/obligations/${obligationId}/checkout`,
+  },
 };
