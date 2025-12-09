@@ -1,7 +1,7 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useContext, useEffect, useLayoutEffect, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ContractService } from '../../api/services/contractServices';
 import { Contract, ContractObligation } from '../../api/types/contract';
 import { AuthContext } from '../../context/AuthContext';
@@ -122,15 +122,16 @@ const TotalsCard = ({ contract }: { contract: Contract }) => {
   );
 };
 
-const ObligationsCard = ({ contract }: { contract: Contract }) => {
+const ObligationsCard = ({ contract, refreshTrigger, onRefreshComplete }: { contract: Contract; refreshTrigger: number; onRefreshComplete?: () => void }) => {
   const { colors } = useTheme();
   const { user } = useContext(AuthContext);
   const [obligations, setObligations] = useState<ContractObligation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
     loadObligations();
-  }, [contract.id]);
+  }, [contract.id, refreshTrigger]);
 
   const loadObligations = async () => {
     try {
@@ -148,6 +149,7 @@ const ObligationsCard = ({ contract }: { contract: Contract }) => {
       setObligations([]);
     } finally {
       setLoading(false);
+      if (onRefreshComplete) onRefreshComplete();
     }
   };
 
@@ -167,41 +169,34 @@ const ObligationsCard = ({ contract }: { contract: Contract }) => {
 
   const processMercadoPagoPayment = async (obligation: ContractObligation) => {
     try {
-      // TODO: Call your backend API to create Mercado Pago preference
-      // const preferenceResponse = await createMercadoPagoPreference({
-      //   obligationId: obligation.id,
-      //   amount: obligation.totalAmount,
-      //   description: `Obligación ${obligation.month}/${obligation.year} - Contrato ${contract.id}`,
-      //   payer: {
-      //     email: contract.email,
-      //     identification: {
-      //       type: "CC",
-      //       number: contract.document
-      //     }
-      //   }
-      // });
+      setPaymentLoading(true);
 
-      // For now, create a mock Mercado Pago checkout URL
-      // In production, this would come from your backend
-      const mockCheckoutUrl = `https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=MOCK_PREFERENCE_ID_${obligation.id}`;
+      const token = user?.data?.accessToken;
+      const result = await ContractService.createCheckout(obligation.id, token);
 
-      // Open Mercado Pago Checkout Pro in the device's browser
-      const canOpen = await Linking.canOpenURL(mockCheckoutUrl);
+      if (result.success && result.data?.url) {
+        // Open Mercado Pago Checkout Pro in the device's browser
+        const canOpen = await Linking.canOpenURL(result.data.url);
 
-      if (canOpen) {
-        await Linking.openURL(mockCheckoutUrl);
-        Alert.alert(
-          'Pago Iniciado',
-          'Se ha abierto Mercado Pago para procesar el pago. Complete el proceso en su navegador.',
-          [{ text: 'Entendido' }]
-        );
+        if (canOpen) {
+          await Linking.openURL(result.data.url);
+          Alert.alert(
+            'Pago Iniciado',
+            'Se ha abierto Mercado Pago para procesar el pago. Complete el proceso en su navegador.',
+            [{ text: 'Entendido' }]
+          );
+        } else {
+          Alert.alert('Error', 'No se pudo abrir Mercado Pago. Verifique su conexión a internet.');
+        }
       } else {
-        Alert.alert('Error', 'No se pudo abrir Mercado Pago. Verifique su conexión a internet.');
+        Alert.alert('Error', result.message || 'No se pudo obtener la URL de Mercado Pago.');
       }
 
     } catch (error) {
       console.error('Error processing Mercado Pago payment:', error);
       Alert.alert('Error', 'No se pudo procesar el pago. Intente nuevamente.');
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -252,12 +247,15 @@ const ObligationsCard = ({ contract }: { contract: Contract }) => {
                   </Text>
                 </View>
               </View>
-              {!obligation.locked && obligation.daysLate === 0 && (
+              {!obligation.locked && obligation.status !== 'Pagada' && (
                 <TouchableOpacity
                   style={[styles.payButton, { backgroundColor: colors.primary }]}
                   onPress={() => handlePayment(obligation)}
+                  disabled={paymentLoading}
                 >
-                  <Text style={[styles.payButtonText, { color: colors.textLight }]}>Pagar</Text>
+                  <Text style={[styles.payButtonText, { color: colors.textLight }]}>
+                    {paymentLoading ? 'Procesando...' : 'Pagar'}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -280,6 +278,8 @@ export default function DetailsContractScreen() {
   const route = useRoute<DetailsContractRouteProp>();
   const headerHeight = useHeaderHeight();
   const { contract } = route.params;
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -288,15 +288,28 @@ export default function DetailsContractScreen() {
     });
   }, [navigation, colors]);
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const onRefreshComplete = () => {
+    setRefreshing(false);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: headerHeight, backgroundColor: colors.surfaceSecondary }]}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <HeroSectionContract contract={contract} />
         <InfoCardContract contract={contract} />
         <DatesCard contract={contract} />
         <LocationsCard contract={contract} />
         <TotalsCard contract={contract} />
-        <ObligationsCard contract={contract} />
+        <ObligationsCard contract={contract} refreshTrigger={refreshTrigger} onRefreshComplete={onRefreshComplete} />
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
