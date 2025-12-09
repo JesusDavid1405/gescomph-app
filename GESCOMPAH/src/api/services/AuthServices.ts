@@ -6,6 +6,7 @@ import { ChangePasswordDto, ChangePasswordRequest, ForgotPasswordRequest, LoginR
 export const AuthService = {
   async login(payload: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     try {
+      console.log("AuthService.login - Payload:", payload);
       const response = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTH.LOGIN}`, {
         method: "POST",
         headers: DEFAULT_HEADERS,
@@ -13,7 +14,13 @@ export const AuthService = {
         body: JSON.stringify(payload),
       });
 
+      console.log("AuthService.login - Response status:", response.status);
       const data = await response.json();
+      console.log("AuthService.login - Response data:", data);
+
+      if (response.ok && data?.data?.accessToken) {
+        console.log("AuthService.login - Access Token:", data.data.accessToken);
+      }
 
       return { success: response.ok, data, message: data.message };
     } catch (error) {
