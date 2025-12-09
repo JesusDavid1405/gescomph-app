@@ -46,4 +46,13 @@ export const ENDPOINTS = {
     PDF: (id: number) => `/Contract/${id}/pdf`,
     OBLIGATIONS: (id: number) => `/Contract/${id}/obligations`,
   },
+  PAYMENTS: {
+    CHECKOUT: (obligationId: number) => `/payments/obligations/${obligationId}/checkout`,
+  },
+  NOTIFICATION: {
+    FEED: (userId: number) => `/Notification/feed/${userId}`,
+    UNREAD: (userId: number) => `/Notification/${userId}/unread`,
+    READ: (notificationId: number) => `/Notification/${notificationId}/read`,
+    MARK_ALL_READ: (userId: number) => `/Notification/mark-all/${userId}/read`,
+  },
 };

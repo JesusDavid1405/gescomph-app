@@ -152,4 +152,27 @@ export const ContractService = {
       return { success: false, message: "Error de conexión" };
     }
   },
+
+  async createCheckout(obligationId: number, token?: string): Promise<ApiResponse<{url: string}>> {
+    const headers = {
+      ...DEFAULT_HEADERS,
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${ENDPOINTS.PAYMENTS.CHECKOUT(obligationId)}`, {
+        method: "POST",
+        headers,
+        credentials: "include",
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : null;
+
+      return { success: response.ok, data, message: data?.message };
+    } catch (error) {
+      console.error("Error en createCheckout:", error);
+      return { success: false, message: "Error de conexión" };
+    }
+  },
 };
